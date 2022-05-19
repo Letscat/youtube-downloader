@@ -71,7 +71,7 @@ def main():
     lbl_progress = Label(text= str(downloaded_songs) +"von"+ str(amount_of_songs))
     lbl_progress.place(rely=1, relx=0, x=0, y=0, anchor=SW)
     
-    playlist = Entry(width=50)
+    playlist = Entry(width=40)
     label_playlist = Label( text="Url")
     playlist.place(rely=0.3, relx=0.5, x=0, y=0, anchor=N)
     label_playlist.place(rely=0.3, relx=0.9, x=0, y=0, anchor=N)
@@ -88,6 +88,16 @@ def main():
 
     window.geometry('450x100')
     window.mainloop()
+    try:
+        window.attributes('-topmost', 1)
+        window.update()
+        window.attributes('-topmost', 0)
+        window.iconify()
+        window.deiconify()
+        
+
+    except:
+        print("closed")
     #The Motion Tracking Part of the Software shouldnt freeze up the rest of the application, required sepperate Thread
 
 
