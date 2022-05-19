@@ -2,7 +2,7 @@ from setuptools import setup
 
 APP=['main.py']
 OPTIONS = {
-    'argv_emulation': True,
+    'argv_emulation': False,
      'includes': ['Threading','os','pytube','tkinter','time'],}
 
 setup(
