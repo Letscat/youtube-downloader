@@ -1,12 +1,11 @@
 from tkinter import ttk
-import tkinter
-from pytube import YouTube
-from pytube import Playlist
-import os
-import time
-
-import threading
+from moviepy.audio.io.AudioFileClip import AudioFileClip
 from tkinter import *
+from mutagen.easyid3 import EasyID3
+from pytube import YouTube
+import os
+import threading
+import pytube
 
 amount_of_songs = 0
 downloaded_songs = 0
@@ -14,7 +13,7 @@ downloaded_songs = 0
 # prints each video url, which is the same as iterating through playlist.video_urls
 
 
-destination = os.path.join(os.path.expanduser("~"), "Music/test")
+destination = os.path.join(os.path.expanduser("~"), "Music")
 
 
 def dory2mp3():
@@ -25,7 +24,7 @@ def dory2mp3():
             global amount_of_songs
             amount_of_songs += 1
             lbl_progress.configure(
-                text=str(downloaded_songs)+" von " + str(amount_of_songs))
+            text=str(downloaded_songs)+" von " + str(amount_of_songs))
             urlstr = str(url)
             print(urlstr)
 
@@ -43,23 +42,28 @@ def dory2mp3():
                          args=(vid, destination)).start()
 
     def downloadStream(sURL, destination):
-        oVideo = YouTube(sURL)
+        oContent = YouTube(sURL)
+        sFileName=destination + "\\" + oContent.title + ".mp3"
 
-        # get Audiostrean with max qualitty
-        oStream = oVideo.streams.filter(mime_type='audio/mp4').order_by('abr').last()
+        #Get best quality audio-stream and convert it to mp3
+        oStream = oContent.streams.filter(mime_type='audio/mp4').order_by('abr').last()
+        oVideo=oStream.download(output_path=destination)
+        oAudio = AudioFileClip(oVideo)
+        oAudio.write_audiofile(sFileName)
 
-        # download the file
-        out_file = oStream.download(output_path=destination)
+        # Add metadata using mutagen
+        oAudioMetadata = EasyID3(sFileName)
+        oAudioMetadata['title'] = oContent.title
+        oAudioMetadata['artist'] = oContent.author 
+        oAudioMetadata.save()
 
-        # save the file
-        base, ext = os.path.splitext(out_file)
-        new_file = base + '.mp3'
-        try:
-            os.rename(out_file, new_file)
-        except:
-            time.sleep(0.001)
-        # result of success
-        print(oVideo.title + " has been successfully downloaded.")
+
+        oAudio.close()
+
+        #remove uncecessary mp4
+        os.remove(oVideo)
+
+        #progress calculation - still needs rework
         global downloaded_songs
         downloaded_songs += 1
         lbl_progress.configure(
@@ -95,7 +99,7 @@ def dory2mp3():
     lbl_j = Label(tab2, text="Created for my beloved dory")
     lbl_j.place(rely=0.5, relx=0.6, x=0, y=0, anchor=CENTER)
 
-    lbl_c = Label(tab2, text="©2022 Michael Schmid")
+    lbl_c = Label(tab2, text="©2023 Michael Schmid")
     lbl_c.place(rely=1, relx=1, x=0, y=0, anchor=SE)
 
     tab_control.pack(expand=1, fill='both')
@@ -119,7 +123,6 @@ def dory2mp3():
 
     except:
         print("closed")
-    # The Motion Tracking Part of the Software shouldnt freeze up the rest of the application, required sepperate Thread
 
 
 dory2mp3()
