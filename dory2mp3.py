@@ -4,70 +4,64 @@ from tkinter import *
 from mutagen.easyid3 import EasyID3
 from pytube import YouTube,Playlist
 import os
+import string
 import threading
-import pytube
-
-amount_of_songs = 0
-downloaded_songs = 0
-
-# prints each video url, which is the same as iterating through playlist.video_urls
-
-
 destination = os.path.join(os.path.expanduser("~"), "Music")
 
 
 def dory2mp3():
     def setplaylist():
-        print('test')
-        playlist_entered = Playlist(playlist.get())
-        for url in playlist_entered:
-            global amount_of_songs
-            amount_of_songs += 1
-            lbl_progress.configure(
-            text=str(downloaded_songs)+" von " + str(amount_of_songs))
-            urlstr = str(url)
-            print(urlstr)
-
-            lbl_progress.configure(
-                text=str(downloaded_songs)+" von " + str(amount_of_songs))
+        oList = Playlist(playlist.get())
+        for oContent in oList.videos:
             threading.Thread(target=downloadStream,
-                             args=(url, destination)).start()
+                             args=(oContent, destination, oList.length)).start()
 
             # prints address of each YouTube object in the playlist
     def setsong():
-        global amount_of_songs
-        amount_of_songs += 1
-        vid = playlist.get()
+        url = playlist.get()
+        oVideo=YouTube(url)
         threading.Thread(target=downloadStream,
-                         args=(vid, destination)).start()
+                         args=(oVideo, destination, 1)).start()
 
-    def downloadStream(sURL, destination):
-        oContent = YouTube(sURL)
-        sFileName=destination + "\\" + oContent.title + ".mp3"
-
-        #Get best quality audio-stream and convert it to mp3
-        oStream = oContent.streams.filter(mime_type='audio/mp4').order_by('abr').last()
+    def downloadStream(oContent, destination, iPlaylistLength):
+        if oContent.age_restricted:
+            print("Age restricted")
+            return
+        
+        try:
+            #Get best quality audio-stream and convert it to mp3
+            oStream = oContent.streams.get_audio_only()
+        except:
+            print("Stream couldn't be accessed")
+            return
+        
+        sFileName=destination +"/"+ remove_invalid_chars(oContent.title) + ".mp3"
+        print("started Downloading Video:"+oContent.title )
         oVideo=oStream.download(output_path=destination)
         oAudio = AudioFileClip(oVideo)
         oAudio.write_audiofile(sFileName)
         
+
+        try:
+            #Get best quality audio-stream and convert it to mp3
+            oAudioMetadata = EasyID3(sFileName)
+            oAudioMetadata['title'] = oContent.title
+            oAudioMetadata['artist'] = oContent.author 
+            oAudioMetadata.save()
+        except:
+            print("Stream couldn't be accessed")
+            return
+        
         # Add metadata using mutagen
-        oAudioMetadata = EasyID3(sFileName)
-        oAudioMetadata['title'] = oContent.title
-        oAudioMetadata['artist'] = oContent.author 
-        oAudioMetadata.save()
+
 
 
         oAudio.close()
-
         #remove uncecessary mp4
         os.remove(oVideo)
-
-        #progress calculation - still needs rework
-        global downloaded_songs
-        downloaded_songs += 1
-        lbl_progress.configure(
-            text=str(downloaded_songs)+" von " + str(amount_of_songs))
+    def remove_invalid_chars(filename):
+        valid_chars = "-_.() %s%s" % (string.ascii_letters, string.digits)
+        return ''.join(c for c in filename if c in valid_chars)
     window = Tk()
     window.title("Dory2mp3")
     window.iconbitmap("dory.ico")
@@ -84,9 +78,6 @@ def dory2mp3():
 
     playlist = Entry(tab1, width=40)
     playlist.place(rely=0.5, relx=0.5, x=0, y=0, anchor=CENTER)
-    lbl_progress = Label(tab1, text=str(
-        downloaded_songs) + "von" + str(amount_of_songs))
-    lbl_progress.place(rely=0, relx=1, x=0, y=0, anchor=NE)
 
     btn1 = Button(tab1, text='Download Playlist', command=setplaylist)
 
