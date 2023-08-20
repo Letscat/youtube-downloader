@@ -3,6 +3,7 @@ from moviepy.audio.io.AudioFileClip import AudioFileClip
 from tkinter import *
 from mutagen.easyid3 import EasyID3
 from pytube import YouTube,Playlist
+from pytube.cli import on_progress
 import os
 import string
 import threading
@@ -34,14 +35,13 @@ def dory2mp3():
         except:
             print("Stream couldn't be accessed")
             return
-        
+        oContent.register_on_progress_callback(my_progress_function)
         sFileName=destination +"/"+ remove_invalid_chars(oContent.title) + ".mp3"
         print("started Downloading Video:"+oContent.title )
+        
         oVideo=oStream.download(output_path=destination)
         oAudio = AudioFileClip(oVideo)
         oAudio.write_audiofile(sFileName)
-        
-
         try:
             #Get best quality audio-stream and convert it to mp3
             oAudioMetadata = EasyID3(sFileName)
@@ -62,6 +62,12 @@ def dory2mp3():
     def remove_invalid_chars(filename):
         valid_chars = "-_.() %s%s" % (string.ascii_letters, string.digits)
         return ''.join(c for c in filename if c in valid_chars)
+    def my_progress_function(stream, chunk, bytes_remaining):
+        total_size = stream.filesize
+        bytes_downloaded = total_size - bytes_remaining
+
+        #progress = round(bytes_downloaded / total_size * 100)
+        print(f"Downloaded {bytes_downloaded} out of {total_size} bytes)")
     window = Tk()
     window.title("Dory2mp3")
     window.iconbitmap("dory.ico")
