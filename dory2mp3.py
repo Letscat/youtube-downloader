@@ -44,15 +44,12 @@ def dory2mp3():
         try:
             #Get best quality audio-stream and convert it to mp3
             oStream = oContent.streams.get_audio_only()
-            
         except:
             print("Stream couldn't be accessed")
             return
         fDownloadSize+=round(oStream.filesize_mb,1)
         oContent.register_on_progress_callback(my_progress_function)
         sFileName=destination +"/"+ remove_invalid_chars(oContent.title) + ".mp3"
-        print("started Downloading Video:"+oContent.title )
-        
         oVideo=oStream.download(output_path=destination)
         oAudio = AudioFileClip(oVideo)
         oAudio.write_audiofile(sFileName,logger=logger)
