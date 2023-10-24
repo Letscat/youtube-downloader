@@ -40,12 +40,11 @@ def dory2mp3():
         if oContent.age_restricted:
             print("Age restricted")
             return
-        
         try:
             #Get best quality audio-stream and convert it to mp3
             oStream = oContent.streams.get_audio_only()
         except:
-            print("Stream couldn't be accessed")
+            print("Stream couldn't be accessed , DU HS!!")
             return
         fDownloadSize+=round(oStream.filesize_mb,1)
         oContent.register_on_progress_callback(my_progress_function)
