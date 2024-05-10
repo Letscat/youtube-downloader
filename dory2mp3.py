@@ -12,25 +12,22 @@ fDownload=0
 sDestination = os.path.join(os.path.expanduser("~"), "Music")
 
 def is_video(oInput):
-    oList=Playlist(oInput)
-    #maybe some work to do, unwanted download of playlists
-    if len(oList)==0:
+    try:
         oContent=YouTube(oInput)
         oContent.register_on_progress_callback(my_progress_function)
         threading.Thread(target=download,args=(oContent, sDestination)).start()
-        return
-    for oContent in oList.videos:
-        oContent.register_on_progress_callback(my_progress_function)
-        threading.Thread(target=download,args=(oContent,sDestination)).start()
-    
+    except:
+        oPlaylist=Youtube(oInput)
+        for oContent in oPlaylist.videos:
+            oContent.register_on_progress_callback(my_progress_function)
+            threading.Thread(target=download,args=(oContent,sDestination)).start() 
     
 def download(oContent,sDestination):
-    print(oContent.title)
     global fDownloadSize
+    fDownloadSize+=round(oStream.filesize_mb,1)
     if oContent.age_restricted:
         print("Age restricted")
         return
-    print(2311)
     try:
         #Get best quality audio-stream and convert it to mp3
         oStream = oContent.streams.get_audio_only()
@@ -47,14 +44,17 @@ def remove_invalid_chars(filename):
     valid_chars = "-_.() %s%s" % (string.ascii_letters, string.digits)
     return ''.join(c for c in filename if c in valid_chars)
 def my_progress_function(stream, chunk, bytes_remaining):
+    print(2311)
+    
     global fDownloaded
     global fDownload
     if bytes_remaining > 9437184:
         fDownloaded+=9
     else:
         fDownloaded+=round(len(chunk)/1048576,1)
-    #progress = round(bytes_downloaded / total_size * 100)
-    app.progressBarDownloaded.set(0.8)
+    progress = round(round(fDownloaded / fDownload * 100))
+    print(23111)
+    app.progressBarDownloaded.set(progress)
 class App(customtkinter.CTk):
     def __init__(self):
         super().__init__()
