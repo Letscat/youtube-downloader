@@ -17,13 +17,13 @@ def is_video(oInput):
         oContent.register_on_progress_callback(my_progress_function)
         threading.Thread(target=download,args=(oContent, sDestination)).start()
     except:
-        oPlaylist=Youtube(oInput)
+        oPlaylist=Playlist(oInput)
         for oContent in oPlaylist.videos:
             oContent.register_on_progress_callback(my_progress_function)
             threading.Thread(target=download,args=(oContent,sDestination)).start() 
     
 def download(oContent,sDestination):
-   
+    app.progressBarDownloaded.set(0)
  
     if oContent.age_restricted:
         print("Age restricted")
@@ -45,9 +45,7 @@ def download(oContent,sDestination):
 def remove_invalid_chars(filename):
     valid_chars = "-_.() %s%s" % (string.ascii_letters, string.digits)
     return ''.join(c for c in filename if c in valid_chars)
-def my_progress_function(stream, chunk, bytes_remaining):
-    print(2311)
-    
+def my_progress_function(stream, chunk, bytes_remaining):    
     global fDownloaded
     global fDownload
     if bytes_remaining > 9437184:
@@ -55,7 +53,6 @@ def my_progress_function(stream, chunk, bytes_remaining):
     else:
         fDownloaded+=round(len(chunk)/1048576,1)
     progress = round(round(fDownloaded / fDownload * 100))
-    print(23111)
     app.progressBarDownloaded.set(progress)
 class App(customtkinter.CTk):
     def __init__(self):
