@@ -1,6 +1,6 @@
 import customtkinter
-from pytube import YouTube,Playlist
-from pytube.cli import on_progress
+from pytubefix import YouTube,Playlist
+from pytubefix.cli import on_progress
 from proglog import ProgressBarLogger
 from mutagen.easyid3 import EasyID3
 from moviepy.audio.io.AudioFileClip import AudioFileClip
@@ -23,14 +23,16 @@ def is_video(oInput):
             threading.Thread(target=download,args=(oContent,sDestination)).start() 
     
 def download(oContent,sDestination):
-    global fDownloadSize
-    fDownloadSize+=round(oStream.filesize_mb,1)
+   
+ 
     if oContent.age_restricted:
         print("Age restricted")
         return
     try:
         #Get best quality audio-stream and convert it to mp3
         oStream = oContent.streams.get_audio_only()
+        global fDownload
+        fDownload+=round(oStream.filesize_mb,1)
         
     except:
         print("Stream couldn't be accessed")
